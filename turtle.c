@@ -3914,7 +3914,8 @@ turtle_write_pn_local(term_t Stream, term_t Value)
 
 install_t
 install_turtle(void)
-{ FUNCTOR_pair2  = PL_new_functor(PL_new_atom("-"), 2);
+{ PL_register_blob_type(&turtle_blob);
+  FUNCTOR_pair2  = PL_new_functor(PL_new_atom("-"), 2);
   FUNCTOR_colon2 = PL_new_functor(PL_new_atom(":"), 2);
 
   MKFUNCTOR(error,	     2);
