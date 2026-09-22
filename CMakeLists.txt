@@ -30,9 +30,12 @@ test_libs(turtle ntriples TEST_DIRS Tests)
 add_custom_target(semweb)
 add_dependencies(semweb turtle ntriples)
 
-if(MULTI_THREADED)
+if(MULTI_THREADED OR WASI)
 # As is, the RDF database depends on threads. Making it available in the
 # single threaded version requires some redesign.
+# On WASI we build it single-threaded against no-op pthread stubs; the
+# database GC thread is only started when the `threads` Prolog flag is
+# true, so operation degrades to synchronous GC.
 set(SWIPL_SEMWEB_DATA
     rdfs.rdfs dc.rdfs eor.rdfs owl.owl rdf_library.ttl)
 prepend(SWIPL_SEMWEB_DATA ${CMAKE_CURRENT_SOURCE_DIR} ${SWIPL_SEMWEB_DATA})
@@ -67,7 +70,7 @@ install_src(pkg_semweb_data
 	    DESTINATION ${SWIPL_INSTALL_LIBRARY}/semweb)
 
 add_dependencies(semweb rdf_db)
-endif(MULTI_THREADED)
+endif(MULTI_THREADED OR WASI)
 
 if(MULTI_THREADED)
 pkg_doc(semweb
