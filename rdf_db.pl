@@ -773,6 +773,9 @@ rdf_source_location(Subject, Source) :-
     rdf_create_gc_thread/0.
 
 rdf_create_gc_thread :-
+    \+ current_prolog_flag(threads, true),
+    !.
+rdf_create_gc_thread :-
     thread_create(rdf_gc_loop, _,
                   [ alias('__rdf_GC')
                   ]).
@@ -1273,10 +1276,14 @@ rdf_index(pg).
 %   Start a thread to initialize the duplicate administration.
 
 rdf_update_duplicates_thread :-
+    current_prolog_flag(threads, true),
+    !,
     thread_create(rdf_update_duplicates, _,
                   [ detached(true),
                     alias('__rdf_duplicate_detecter')
                   ]).
+rdf_update_duplicates_thread :-
+    rdf_update_duplicates.
 
 %!  rdf_update_duplicates is det.
 %
@@ -1548,11 +1555,15 @@ rdf_start_load(SourceURL, queue(Queue)) :-
     debug(rdf(load), '~p is being loaded by thread ~w; waiting ...',
           [ SourceURL, LoadThread]).
 rdf_start_load(SourceURL, Ref) :-
+    current_prolog_flag(threads, true),
+    !,
     thread_self(Me),
     message_queue_create(Queue),
     assertz(rdf_loading(SourceURL, Queue, Me), Ref).
+rdf_start_load(_SourceURL, no_threads).
 
 rdf_end_load(queue(_)) :- !.
+rdf_end_load(no_threads) :- !.
 rdf_end_load(Ref) :-
     clause(rdf_loading(_, Queue, _), _, Ref),
     erase(Ref),
